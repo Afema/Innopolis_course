@@ -8,7 +8,7 @@ public class Task3 {
         Item item3 = new Item("toy3", "art.789-003", 345.00, 6);
         Item item4 = new Item("toy4", "art.789-004", 12.80, 100);
         Item item5 = new Item("toy5", "art.789-005", 500.29, 23);
-        item1.setColor("red");
+        item1.setColor("");
         item2.setColor("green");
         item3.setColor("blue");
         item4.setColor("orange");

@@ -40,6 +40,10 @@ public class Item {
     }
 
     public String toString() {
-        return article + " - " + name + " - " + cost + " - " + amount + " - " + color;
+        if(color.equals("unknown") || color.isEmpty()){
+            return article + " - " + name + " - " + cost + " - " + amount;
+        } else {
+            return article + " - " + name + " - " + cost + " - " + amount + " - " + color;
+        }
     }
 }
