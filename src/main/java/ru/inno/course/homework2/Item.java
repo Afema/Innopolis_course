@@ -38,4 +38,8 @@ public class Item {
     public void setColor(String color) {
         this.color = color;
     }
+
+    public String toString() {
+        return article + " - " + name + " - " + cost + " - " + amount + " - " + color;
+    }
 }

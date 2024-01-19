@@ -14,10 +14,16 @@ public class Task3 {
         item3.setColor("blue");
         item4.setColor("orange");
         item5.setColor("purple");
-        System.out.println(item1.getArticle() + " - " + item1.getName() + " - " + item1.getCost() + " - " + item1.getAmount() + " - " + item1.getColor());
-        System.out.println(item2.getArticle() + " - " + item2.getName() + " - " + item2.getCost() + " - " + item2.getAmount() + " - " + item2.getColor());
-        System.out.println(item3.getArticle() + " - " + item3.getName() + " - " + item3.getCost() + " - " + item3.getAmount() + " - " + item3.getColor());
-        System.out.println(item4.getArticle() + " - " + item4.getName() + " - " + item4.getCost() + " - " + item4.getAmount() + " - " + item4.getColor());
-        System.out.println(item5.getArticle() + " - " + item5.getName() + " - " + item5.getCost() + " - " + item5.getAmount() + " - " + item5.getColor());
+        System.out.println(item1.toString());
+        System.out.println(item2.toString());
+        System.out.println(item3.toString());
+        System.out.println(item4.toString());
+        System.out.println(item5.toString());
+
+//        System.out.println(item1.getArticle() + " - " + item1.getName() + " - " + item1.getCost() + " - " + item1.getAmount() + " - " + item1.getColor());
+//        System.out.println(item2.getArticle() + " - " + item2.getName() + " - " + item2.getCost() + " - " + item2.getAmount() + " - " + item2.getColor());
+//        System.out.println(item3.getArticle() + " - " + item3.getName() + " - " + item3.getCost() + " - " + item3.getAmount() + " - " + item3.getColor());
+//        System.out.println(item4.getArticle() + " - " + item4.getName() + " - " + item4.getCost() + " - " + item4.getAmount() + " - " + item4.getColor());
+//        System.out.println(item5.getArticle() + " - " + item5.getName() + " - " + item5.getCost() + " - " + item5.getAmount() + " - " + item5.getColor());
     }
 }
