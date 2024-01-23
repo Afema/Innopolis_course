@@ -10,7 +10,7 @@ public class Task3 {
         Item item5 = new Item("toy5", "art.789-005", 500.29, 23);
         item1.setColor("");
         item2.setColor("green");
-        item3.setColor("blue");
+        //item3.setColor("blue");
         item4.setColor("orange");
         item5.setColor("purple");
         System.out.println(item1);
