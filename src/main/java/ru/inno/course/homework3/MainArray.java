@@ -40,7 +40,7 @@ public class MainArray {
 
         //task5
 
-        for (int i = 0; i < films.length; i++) {
+        for(int i = 0; i < films.length; i++) {
             System.out.println(films[i].getMovieInfo());
         }
 
