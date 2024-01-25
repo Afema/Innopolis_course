@@ -55,6 +55,4 @@ public class MainArray {
             System.out.println(names[i]);
         }
     }
-
-
 }
