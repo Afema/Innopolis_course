@@ -1,9 +1,11 @@
 package ru.inno.course.x_clientsTests.model;
 
 import lombok.Data;
+import lombok.Getter;
 
 @Data
 public class Employee {
+    private int id = 0;
     private String firstName = "April";
     private String middleName = "Rosa";
     private String lastName = "O'Nil";
@@ -39,5 +41,45 @@ public class Employee {
                 " \"phone\": \"" + this.phone + "\"," +
                 " \"birthdate\": \"" + this.birthdate + "\"," +
                 " \"isActive\": \"" + this.isActive + "\"}";
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getMiddleName() {
+        return middleName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public int getCompanyId() {
+        return companyId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getBirthdate() {
+        return birthdate;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 }

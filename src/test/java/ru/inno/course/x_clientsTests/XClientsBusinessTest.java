@@ -1,24 +1,36 @@
 package ru.inno.course.x_clientsTests;
 
+import com.github.javafaker.Faker;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.*;
+import ru.inno.course.x_clientsTests.db.EmployeeRepository;
+import ru.inno.course.x_clientsTests.db.EmployeeRepositoryJDBC;
 import ru.inno.course.x_clientsTests.model.Company;
 import ru.inno.course.x_clientsTests.model.Employee;
+
+import java.sql.*;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class XClientsBusinessTest {
+    public static final Faker faker = new Faker();
     public static final String URL_COMPANY = "https://x-clients-be.onrender.com/company";
     public static final String URL_EMPLOYEE = "https://x-clients-be.onrender.com/employee";
     public static final String URL_AUTH = "https://x-clients-be.onrender.com/auth/login";
     public static String TOKEN;
+    public static final EmployeeRepository repositoryJDBC = new EmployeeRepositoryJDBC();
     public static Company newCompany = new Company();
-    public static Employee newEmployee = new Employee("April");
-    public static Employee newEmployee2 = new Employee("Raf");
-    public static Employee newEmployee3 = new Employee("Nick");
+    private int employeeIDToDelete;
+
+    @AfterEach
+    public void tearDown() throws SQLException {
+        repositoryJDBC.deleteEmployeeByIdDB(employeeIDToDelete);
+    }
 
     @BeforeAll
     @DisplayName("Авторизация пользователя в роли администратора.Создать компанию")
@@ -36,79 +48,69 @@ public class XClientsBusinessTest {
                 .then().log().all()
                 .statusCode(201)
                 .extract().path("userToken");
+
     }
 
 
     @Test
     @DisplayName("Добавить нового сотрудника в существующую компанию")
-    public void createNewEmployee() {
+    public void createNewEmployee() throws SQLException {
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString()).log().all()
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idCompany = createNewCompanyApi();
 
-        int idEmployee = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
+
+        int idEmployee = createNewEmployeeApi(employeeAPI, idCompany);
+
+        Employee employeeDb = repositoryJDBC.getEmployeeByIdDB(idEmployee);
+        assertEquals(idEmployee, employeeDb.getId());
+        assertEquals(employeeAPI.getFirstName(), employeeDb.getFirstName());
+        assertTrue(employeeDb.isActive());
 
         deleteCompany(idCompany);
+        employeeIDToDelete = employeeDb.getId();
     }
 
     @Test
     @DisplayName("Добавить несколько сотрудников в существующую компанию.Получить список сотрудников")
-    public void createSomeNewEmployee() {
+    public void createSomeNewEmployee() throws SQLException {
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString())
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idCompany = createNewCompanyApi();
 
-        int idEmployee1 = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI1 = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
 
-        int idEmployee2 = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee2.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI2 = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
 
-        int idEmployee3 = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee3.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI3 = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
+
+        int idEmployee1 = createNewEmployeeApi(employeeAPI1, idCompany);
+        int idEmployee2 = createNewEmployeeApi(employeeAPI2, idCompany);
+        int idEmployee3 = createNewEmployeeApi(employeeAPI3, idCompany);
+
 
         given()
                 .get(URL_EMPLOYEE + "?company=" + idCompany)
@@ -117,65 +119,63 @@ public class XClientsBusinessTest {
                 .contentType(ContentType.JSON)
                 .body("id", hasItems(idEmployee1, idEmployee2, idEmployee3));
 
+        Employee employeeDb1 = repositoryJDBC.getEmployeeByIdDB(idEmployee1);
+        Employee employeeDb2 = repositoryJDBC.getEmployeeByIdDB(idEmployee2);
+        Employee employeeDb3 = repositoryJDBC.getEmployeeByIdDB(idEmployee3);
+        assertEquals(idEmployee1, employeeDb1.getId());
+        assertEquals(idEmployee2, employeeDb2.getId());
+        assertEquals(idEmployee3, employeeDb3.getId());
 
         deleteCompany(idCompany);
+        employeeIDToDelete = employeeDb1.getId();
+        employeeIDToDelete = employeeDb2.getId();
+        employeeIDToDelete = employeeDb3.getId();
     }
 
     @Test
     @DisplayName("Получить информацию о сотруднике по id")
-    public void getEmployeeById() {
+    public void getEmployeeById() throws SQLException {
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString())
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idCompany = createNewCompanyApi();
 
-        int idEmployee = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeDb = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(),
+                idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
 
-        given()
-                .get(URL_EMPLOYEE + "/" + idEmployee)
-                .then()
-                .assertThat().body(matchesJsonSchema(newEmployee.getJsonString(idCompany)));
+        int newEmployeeId_DB = repositoryJDBC.createEmployeeDB(employeeDb);
+
+        var employeeResponse = given()
+                .get(URL_EMPLOYEE + "/" + newEmployeeId_DB)
+                .then();
+
+        assertEquals(employeeDb.getFirstName(), employeeResponse.extract().path("firstName"));
+        assertEquals(newEmployeeId_DB, (int) employeeResponse.extract().path("id"));
 
         deleteCompany(idCompany);
+        employeeIDToDelete = newEmployeeId_DB;
+
     }
 
     @Test
     @DisplayName("Изменить информацию о сотруднике по id")
-    public void updateEmployeeById() {
+    public void updateEmployeeById() throws SQLException {
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString())
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idCompany = createNewCompanyApi();
 
-        int idEmployee = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
+
+        int idEmployee = createNewEmployeeApi(employeeAPI, idCompany);
 
         String updatingEmployee = "{\"lastName\": \"Honor\"," +
                 "\"email\": \"ninja01@mail.ru\"," +
@@ -192,26 +192,33 @@ public class XClientsBusinessTest {
                 .statusCode(200)
                 .assertThat().body(matchesJsonSchema(updatingEmployee));
 
+        Employee employeeDb = repositoryJDBC.getEmployeeByIdDB(idEmployee);
+        assertEquals(idEmployee, employeeDb.getId());
+        assertEquals("Honor", employeeDb.getLastName());
+        assertEquals("ninja01@mail.ru", employeeDb.getEmail());
+        assertFalse(employeeDb.isActive());
+
         deleteCompany(idCompany);
+        employeeIDToDelete = employeeDb.getId();
     }
 
     @Test
-    @DisplayName("Добавить сотрудника в сущ.компанию без авториации")
+    @DisplayName("Добавить сотрудника в сущ.компанию без авторизации")
     @Tag("negative")
     public void addEmployeeWithoutAuth() {
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString())
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idCompany = createNewCompanyApi();
+
+        Employee employeeAPI = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
 
         given().log().all()
-                .body(newEmployee.getJsonString(idCompany))
+                .body(employeeAPI.getJsonString(idCompany))
                 .contentType(ContentType.JSON)
                 .when().post(URL_EMPLOYEE)
                 .then().log().all()
@@ -221,29 +228,20 @@ public class XClientsBusinessTest {
     }
 
     @Test
-    @DisplayName("Изменить сотрудника без авториации")
+    @DisplayName("Изменить сотрудника без авторизации")
     @Tag("negative")
     public void updateEmployeeWithoutAuth() {
+        int idCompany = createNewCompanyApi();
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString())
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
 
-        int idEmployee = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idEmployee = createNewEmployeeApi(employeeAPI, idCompany);
 
         String updatingEmployee = "{\"lastName\": \"Honor\"," +
                 "\"email\": \"ninja01@mail.ru\"," +
@@ -312,25 +310,17 @@ public class XClientsBusinessTest {
     @Tag("negative")
     public void getEmployeeDeletedCompany() {
 
-        int idCompany = given()
-                .header("x-client-token", TOKEN)
-                .body(newCompany.getJsonString())
-                .contentType(ContentType.JSON)
-                .when().post(URL_COMPANY)
-                .then()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        int idCompany = createNewCompanyApi();
 
-        int idEmployee = given().log().all()
-                .header("x-client-token", TOKEN)
-                .body(newEmployee.getJsonString(idCompany))
-                .contentType(ContentType.JSON)
-                .when().post(URL_EMPLOYEE)
-                .then().log().all()
-                .statusCode(201)
-                .body("id", greaterThan(0))
-                .extract().path("id");
+        Employee employeeAPI = new Employee(
+                faker.name().firstName(),
+                faker.name().username(),
+                faker.name().lastName(), idCompany,
+                faker.internet().emailAddress(),
+                faker.phoneNumber().cellPhone(),
+                true);
+
+        int idEmployee = createNewEmployeeApi(employeeAPI, idCompany);
 
         deleteCompany(idCompany);
 
@@ -343,9 +333,8 @@ public class XClientsBusinessTest {
                 .get(URL_EMPLOYEE + "/" + idEmployee)
                 .then().log().all()
                 .statusCode(200)
-                .assertThat().body(matchesJsonSchema(newEmployee.getJsonString(idCompany)));
+                .assertThat().body(matchesJsonSchema(employeeAPI.getJsonString(idCompany)));
     }
-
 
     private void deleteCompany(int idCompany) {
         given().log().all()
@@ -354,5 +343,31 @@ public class XClientsBusinessTest {
                 .then()
                 .statusCode(200)
                 .body("id", equalTo(idCompany)).log().all();
+    }
+
+    private int createNewCompanyApi() {
+        int idCompany = given()
+                .header("x-client-token", TOKEN)
+                .body(newCompany.getJsonString())
+                .contentType(ContentType.JSON)
+                .when().post(URL_COMPANY)
+                .then()
+                .statusCode(201)
+                .body("id", greaterThan(0))
+                .extract().path("id");
+        return idCompany;
+    }
+
+    private int createNewEmployeeApi(Employee employee, int idCompany) {
+        int idEmployee = given().log().all()
+                .header("x-client-token", TOKEN)
+                .body(employee.getJsonString(idCompany))
+                .contentType(ContentType.JSON)
+                .when().post(URL_EMPLOYEE)
+                .then().log().all()
+                .statusCode(201)
+                .body("id", greaterThan(0))
+                .extract().path("id");
+        return idEmployee;
     }
 }
