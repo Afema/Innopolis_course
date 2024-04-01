@@ -26,6 +26,7 @@ public class EmployeeRepositoryJDBC implements EmployeeRepository {
         statement.executeUpdate();
         ResultSet keys = statement.getGeneratedKeys();
         keys.next();
+        connection.close();
         return keys.getInt("id");
     }
 
@@ -44,6 +45,7 @@ public class EmployeeRepositoryJDBC implements EmployeeRepository {
                 resultSet.getString("phone"),
                 resultSet.getBoolean("is_active"));
         employee.setId(resultSet.getInt("id"));
+        connection.close();
         return employee;
     }
 
