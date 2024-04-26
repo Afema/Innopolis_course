@@ -1,9 +1,8 @@
-package ru.inno.course.x_clientsTests.model;
+package ru.inno.course.XClient.db.model;
 
-import lombok.Data;
-import lombok.Getter;
 
-@Data
+
+
 public class Employee {
     private int id = 0;
     private String firstName = "April";

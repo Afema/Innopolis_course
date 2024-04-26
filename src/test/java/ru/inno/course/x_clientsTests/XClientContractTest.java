@@ -4,11 +4,12 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.inno.course.x_clientsTests.model.Company;
-import ru.inno.course.x_clientsTests.model.Employee;
+import ru.inno.course.XClient.db.model.Company;
+import ru.inno.course.XClient.db.model.Employee;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 
 public class XClientContractTest {
     public static final String URL_COMPANY = "https://x-clients-be.onrender.com/company";

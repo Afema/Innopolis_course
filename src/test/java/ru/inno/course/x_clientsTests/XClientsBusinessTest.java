@@ -1,15 +1,14 @@
 package ru.inno.course.x_clientsTests;
 
 import com.github.javafaker.Faker;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.*;
-import ru.inno.course.x_clientsTests.db.EmployeeRepository;
-import ru.inno.course.x_clientsTests.db.EmployeeRepositoryJDBC;
-import ru.inno.course.x_clientsTests.model.Company;
-import ru.inno.course.x_clientsTests.model.Employee;
+import ru.inno.course.XClient.db.EmployeeRepository;
+import ru.inno.course.XClient.db.EmployeeRepositoryJDBC;
+import ru.inno.course.XClient.db.model.Company;
+import ru.inno.course.XClient.db.model.Employee;
 
-import java.sql.*;
+import java.sql.SQLException;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;

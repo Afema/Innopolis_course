@@ -1,6 +1,6 @@
-package ru.inno.course.x_clientsTests.db;
+package ru.inno.course.XClient.db;
 
-import ru.inno.course.x_clientsTests.model.Employee;
+import ru.inno.course.XClient.db.model.Employee;
 
 import java.sql.*;
 
