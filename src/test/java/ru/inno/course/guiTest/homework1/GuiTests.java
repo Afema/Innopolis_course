@@ -1,10 +1,7 @@
 package ru.inno.course.guiTest.homework1;
 
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -107,6 +104,14 @@ public class GuiTests {
         Thread.sleep(5000L);
         WebElement cartCount = driver.findElement(By.xpath("//*[@id=\"minwidth\"]/div[4]/div/div[1]/div[1]/div[2]/div/ul/li[6]/a/span[1]/span[1]/span[3]"));
         String count = cartCount.getText();
+        cartCount.click();
+        Thread.sleep(5000L);
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("window.scrollBy(0,document.body.scrollHeight)");
+        WebElement basket = driver.findElement(By.cssSelector("#basket-step1-default > div.b-carttotal.b-carttotal-m-fixed > div.js-order-summary-block.order-summary.order-summary-default > div.mb10 > span > span:nth-child(1) > span.vue-object"));
+        String basketText = basket.getText();
+        String countItemText = driver.findElement(By.cssSelector("#basket-default-prod-count2")).getText();
         assertEquals("60", count);
+        assertEquals("В корзине 60 товаров", basketText + " " + countItemText);
     }
 }
